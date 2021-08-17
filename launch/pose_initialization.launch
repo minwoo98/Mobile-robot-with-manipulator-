@@ -1,0 +1,8 @@
+<launch>
+    <rosparam file="$(find etri_nav)/param/initial_pose.yaml" command="load" />
+
+    <!-- pose_initialization -->
+    <node pkg="etri_nav" type="pose_initialization" name="pose_initialization" output="screen">
+    </node>
+
+</launch>

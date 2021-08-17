@@ -1,0 +1,6 @@
+<launch>
+  <node name="open_manipulator_pick_and_place" pkg="etri_nav" type="open_manipulator_pick_and_place" output="screen"/>
+  <!-- object pose pub-->
+  <node pkg="ar_track_alvar" name="object_pose_pub" type="object_pose_pub"/>
+
+</launch>

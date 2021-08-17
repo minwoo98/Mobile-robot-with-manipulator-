@@ -1,0 +1,13 @@
+init_pose:
+  position: [0.560873866081, 0.316303223372, 0.0]
+  orientation: [0.0, 0.0, 0.0, 1.0]
+
+picking_pose:
+  position: [1.57847106457, 0.316303223372, 0.0]
+  orientation: [0.0, 0.0, 0.0, 0.9999999]
+
+placing_pose:
+  position: [0.560873866081, 0.316303223372, 0.0]
+  orientation: [0.0, 0.0, 0.0, 1.0]
+
+

@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="etri_nav" type="main_control" name="main_control"/>
+</launch>

@@ -1,0 +1,6 @@
+devel_space: /home/minwoo2/catkin_ws/src/etri_nav/devel
+install: false
+install_space: /home/minwoo2/catkin_ws/src/etri_nav/install
+profile: default
+source_space: /home/minwoo2/catkin_ws/src/etri_nav/src
+workspace: /home/minwoo2/catkin_ws/src/etri_nav
