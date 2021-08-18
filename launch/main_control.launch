@@ -1,3 +1,6 @@
 <launch>
   <node pkg="etri_nav" type="main_control" name="main_control"/>
+
+  <include file="$(find etri_nav)/launch/open_manipulator_pick_and_place.launch" >         
+  </include>
 </launch>

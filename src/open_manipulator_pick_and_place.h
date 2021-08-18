@@ -106,6 +106,8 @@ class OpenManipulatorPickandPlace
   bool kbhit();
   void Teaching();
   void start_navigation2_pub();
+  void start_navigation0_pub();
+  void pub_pose();
 };
 
 #endif //OPEN_MANIPULATOR_PICK_AND_PLACE_H

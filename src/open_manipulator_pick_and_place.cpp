@@ -20,7 +20,7 @@
 #include "open_manipulator_pick_and_place.h"
 
 int count = 0;
-
+int manipulator = 0;
 
 OpenManipulatorPickandPlace::OpenManipulatorPickandPlace()
 : node_handle_(""),
@@ -178,7 +178,6 @@ void OpenManipulatorPickandPlace::arPoseMarkerCallback(const ar_track_alvar_msgs
 void arrivedCallback(const etri_nav::main_control &msg)
 {
   start_manipulator = msg.arrived;
-  //ROS_INFO("val: %d \n", start_pick);
 }
 
 void OpenManipulatorPickandPlace::publishCallback(const ros::TimerEvent&)
@@ -187,11 +186,13 @@ void OpenManipulatorPickandPlace::publishCallback(const ros::TimerEvent&)
   //if (kbhit()) setModeState(std::getchar()); //key teleop
   if(start_manipulator) 
   {
-    setModeState('2'); // when is arrived at pick place
+    if(!manipulator)  setModeState('2'); // when is arrived at pick place
+    else if(manipulator == 1) ROS_INFO("finish grasp \n");
+    //setModeState('2');
   }
   if (mode_state_ == HOME_POSE)
   {
-    std::vector<double> joint_angle;
+    std ::vector<double> joint_angle;
 
     joint_angle.push_back( 0.00);
     joint_angle.push_back(-1.05);
@@ -223,6 +224,8 @@ void OpenManipulatorPickandPlace::setModeState(char ch)
   }
   else if (ch == '3')
     mode_state_ = DEMO_STOP;
+
+ // if(ch == '4') demo_count_ ++;
 }
 
 void OpenManipulatorPickandPlace::demoSequence()
@@ -249,11 +252,10 @@ void OpenManipulatorPickandPlace::demoSequence()
     }  
     else if(count == 1)
     {
-      //mode_state_ = HOME_POSE;
+      mode_state_ = DEMO_STOP;
+      manipulator = 1;
       start_navigation2_pub();
-      //count = 0;
     } 
-    
     break;
 
   case 1: // object grasp joint pose
@@ -266,7 +268,7 @@ void OpenManipulatorPickandPlace::demoSequence()
     break;
 
   case 2: // wait & open the gripper
-    //setJointSpacePath(joint_name_, present_joint_angle_, 3.0);
+    setJointSpacePath(joint_name_, present_joint_angle_, 1.0);
     gripper_value.push_back(0.010);
     setToolControl(gripper_value);
     demo_count_ ++;
@@ -297,7 +299,7 @@ void OpenManipulatorPickandPlace::demoSequence()
 
   case 4: //object grasping
     setJointSpacePath(joint_name_, present_joint_angle_, 1.0);
-    gripper_value.push_back(-0.010);
+    gripper_value.push_back(-0.003);
     setToolControl(gripper_value);
     
     demo_count_ ++;
@@ -315,7 +317,14 @@ void OpenManipulatorPickandPlace::start_navigation2_pub()
 {
   arrived_msg.start_navigation = 2;  //starting return navigation
   start_navigation_pub.publish(arrived_msg);
-  arrived_msg.start_navigation = 0;
+ 
+  start_navigation0_pub();
+}
+
+void OpenManipulatorPickandPlace::start_navigation0_pub()
+{
+  arrived_msg.start_navigation = 0;  //starting return navigation
+  start_navigation_pub.publish(arrived_msg);
 }
 
 
@@ -323,6 +332,9 @@ void OpenManipulatorPickandPlace::printText()
 {
   system("clear");
 
+  printf("mode_state : %d \n", mode_state_);
+  printf("demo_count : %d \n", demo_count_);
+/*
   printf("\n");
   printf("-----------------------------\n");
   printf("Pick and Place demonstration!\n");
@@ -365,7 +377,7 @@ void OpenManipulatorPickandPlace::printText()
   else if (mode_state_ == DEMO_STOP)
   {
     printf("The end of demo\n");
-  }
+  }*/
 /*
   printf("-----------------------------\n");
   printf("Present Joint Angle J1: %.3lf J2: %.3lf J3: %.3lf J4: %.3lf\n",
@@ -380,6 +392,7 @@ void OpenManipulatorPickandPlace::printText()
          present_kinematic_position_.at(2));
   printf("-----------------------------\n");
 */
+/*
   if (ar_marker_pose.size()) printf("AR marker detected.\n");
   for (int i = 0; i < ar_marker_pose.size(); i ++)
   {
@@ -389,6 +402,7 @@ void OpenManipulatorPickandPlace::printText()
            ar_marker_pose.at(i).position[1],
            ar_marker_pose.at(i).position[2]);
   }
+*/
 }
 
 bool OpenManipulatorPickandPlace::kbhit()
@@ -415,7 +429,7 @@ int main(int argc, char **argv)
 
   OpenManipulatorPickandPlace open_manipulator_pick_and_place;
 
-  ros::Timer publish_timer = node_handle.createTimer(ros::Duration(0.100)/*100ms*/, &OpenManipulatorPickandPlace::publishCallback, &open_manipulator_pick_and_place);
+  ros::Timer publish_timer = node_handle.createTimer(ros::Duration(0.400)/*100ms*/, &OpenManipulatorPickandPlace::publishCallback, &open_manipulator_pick_and_place);
 
   while (ros::ok())
   {

@@ -40,8 +40,7 @@ public:
     is_pose_initialized = fnSetInitialPose();
     is_sending_goal_ready = set_first_goal();
     //is_sending_goal_ready2 = set_second_goal();
-
-    
+ 
     for(int i=0; i<30000; i++)  
     {
       ROS_INFO("waiting for start..%d \n", i);
@@ -59,7 +58,7 @@ public:
     ros::Rate loop_rate(5);
     while (ros::ok())
     {
-     
+      //pub_pose();
       ros::spinOnce(); //process callback que
       loop_rate.sleep();
     }
@@ -122,28 +121,7 @@ public:
     is_sending_goal_ready = false;
     //ROS_INFO("IN..");
   } 
-/*
-  bool set_second_goal()
-  {
-    //placing place 
-    node_handle_.getParam("init_pose/position", init_pose_position);
-    node_handle_.getParam("init_pose/orientation", init_pose_orientation);
 
-    poseStamped_picking.header.frame_id = "map";
-    poseStamped_picking.header.stamp = ros::Time::now();
-
-    poseStamped_place.pose.position.x = init_pose_position[0];
-    poseStamped_place.pose.position.y = init_pose_position[1];
-    poseStamped_place.pose.position.z = init_pose_position[2];
-
-    poseStamped_place.pose.orientation.x = init_pose_orientation[0];
-    poseStamped_place.pose.orientation.x = init_pose_orientation[1];
-    poseStamped_place.pose.orientation.z = init_pose_orientation[2];
-    poseStamped_place.pose.orientation.w = init_pose_orientation[3];
-
-    return true;
-  }
-*/
   void Sending_second_goal()
   {
     node_handle_.getParam("placing_pose/position", placing_pose_position);
@@ -163,10 +141,6 @@ public:
 
     pubPoseStamped.publish(poseStamped_place);
     ROS_INFO("Return Navigation Start! \n");
-
-    arrived_msg.arrived = 0;
-    arrived_msg.start_navigation = 0;
-    arrived_pub.publish(arrived_msg);
   } 
 
   void start_Callback(const etri_nav::main_control &msg)
@@ -176,14 +150,16 @@ public:
     if(nav == 1)  Sending_first_goal();
     else if(nav == 2)
     {
-      for(int i=0; i<3000; i++)
+      for(int i=0; i<15000; i++)
       {
-       ROS_INFO("wait for return..%d \n", i);
+        ROS_INFO("wait for return..%d \n", i);
       }
       Sending_second_goal();
     }
-    else;
-
+    else if(nav ==0)
+    {
+      ROS_INFO("Going back.. \n");
+    }
   }
 
 private:
@@ -213,6 +189,8 @@ private:
   bool is_pose_initialized = false;
   bool is_sending_goal_ready = false;
   bool is_sending_goal_ready2 = false;
+
+  int robot_scenario = 0;
 };
 
 //
