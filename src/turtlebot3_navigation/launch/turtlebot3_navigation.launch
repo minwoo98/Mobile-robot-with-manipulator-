@@ -24,11 +24,6 @@
   <!-- pose initialaization -->
   <include file="$(find etri_nav)/launch/pose_initialization.launch">
   </include>
-  
-  <!-- manipulator -->
-  <!--node name="open_manipulator_pick_and_place" pkg="open_manipulator_pick_and_place" type="open_manipulator_pick_and_place" output="screen">
-    <param name="port" value="/dev/ttyACM1" />
-  </node-->
 
   <!-- rviz -->
   <group if="$(arg open_rviz)"> 

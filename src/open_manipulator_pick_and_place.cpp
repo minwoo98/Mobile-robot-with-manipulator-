@@ -19,14 +19,17 @@
 //#include "open_manipulator_pick_and_place/open_manipulator_pick_and_place.h"
 #include "open_manipulator_pick_and_place.h"
 
-int count = 0;
+int count1 = 0;
+int count2 = 0;
 int manipulator = 0;
+
 
 OpenManipulatorPickandPlace::OpenManipulatorPickandPlace()
 : node_handle_(""),
   priv_node_handle_("~"),
   mode_state_(0),
   demo_count_(0),
+  place_count_(0),
   pick_ar_id_(0)
 {
   present_joint_angle_.resize(NUM_OF_JOINT_AND_TOOL, 0.0);
@@ -37,7 +40,7 @@ OpenManipulatorPickandPlace::OpenManipulatorPickandPlace()
   joint_name_.push_back("joint3");
   joint_name_.push_back("joint4");
 
-  start_navigation_pub = node_handle_.advertise<etri_nav::main_control>("start_navigation", 1);
+  finish_pick_pub = node_handle_.advertise<etri_nav::main_control>("finish_pick", 1);
   initServiceClient();
   initSubscribe();
 
@@ -177,19 +180,29 @@ void OpenManipulatorPickandPlace::arPoseMarkerCallback(const ar_track_alvar_msgs
 //arrived subscribe
 void arrivedCallback(const etri_nav::main_control &msg)
 {
-  start_manipulator = msg.arrived;
+  start_manipulator = msg.start_pick;
 }
+
+void start_place_Callback(const etri_nav::main_control &msg)
+{
+  start_manipulator_place = msg.start_place;
+}
+
 
 void OpenManipulatorPickandPlace::publishCallback(const ros::TimerEvent&)
 {
   printText();
   //if (kbhit()) setModeState(std::getchar()); //key teleop
-  if(start_manipulator) 
+  if(start_manipulator == 1) 
   {
     if(!manipulator)  setModeState('2'); // when is arrived at pick place
     else if(manipulator == 1) ROS_INFO("finish grasp \n");
-    //setModeState('2');
   }
+  if(start_manipulator_place == 1)
+  {
+     setModeState('7');
+  }
+
   if (mode_state_ == HOME_POSE)
   {
     std ::vector<double> joint_angle;
@@ -213,6 +226,10 @@ void OpenManipulatorPickandPlace::publishCallback(const ros::TimerEvent&)
   {
 
   }
+  else if (mode_state_ == DEMO_PLACE_START)
+  {
+    if (!open_manipulator_is_moving_) Place_Sequence();
+  }
 }
 void OpenManipulatorPickandPlace::setModeState(char ch)
 {
@@ -223,9 +240,15 @@ void OpenManipulatorPickandPlace::setModeState(char ch)
     mode_state_ = DEMO_START;
   }
   else if (ch == '3')
+  {
     mode_state_ = DEMO_STOP;
+  }
+  else if (ch == '7')
+  {
+     mode_state_ = DEMO_PLACE_START;
+  }
 
- // if(ch == '4') demo_count_ ++;
+  if(ch == '4') place_count_ ++;
 }
 
 void OpenManipulatorPickandPlace::demoSequence()
@@ -245,16 +268,17 @@ void OpenManipulatorPickandPlace::demoSequence()
     joint_angle.push_back( 0.70);
     setJointSpacePath(joint_name_, joint_angle, 1.5);
 
-    if(count == 0)
+    if(count1 == 0)
     {
       demo_count_ ++;
-      count = 1;
+      count1 = 1;
     }  
-    else if(count == 1)
+    else if(count1 == 1)
     {
       mode_state_ = DEMO_STOP;
-      manipulator = 1;
-      start_navigation2_pub();
+      start_manipulator = 1;
+      finish_pick_pub_func();
+      
     } 
     break;
 
@@ -313,20 +337,92 @@ void OpenManipulatorPickandPlace::demoSequence()
   }
 }
 
-void OpenManipulatorPickandPlace::start_navigation2_pub()
+void OpenManipulatorPickandPlace::Place_Sequence()
 {
-  arrived_msg.start_navigation = 2;  //starting return navigation
-  start_navigation_pub.publish(arrived_msg);
- 
-  start_navigation0_pub();
+  std::vector<double> joint_angle;
+  std::vector<double> kinematics_position;
+  std::vector<double> kinematics_orientation;
+  std::vector<double> gripper_value;
+
+  switch (place_count_)
+  {
+  case 0: // home pose
+    joint_angle.push_back( 0.00);
+    joint_angle.push_back(-1.05);
+    joint_angle.push_back( 0.35);
+    joint_angle.push_back( 0.70);
+    setJointSpacePath(joint_name_, joint_angle, 1.5);
+    
+    if(count2 == 0)
+    {
+      place_count_ ++;
+      count2 = 1;
+    }  
+    else if(count2 == 1)
+    {
+      mode_state_ = DEMO_STOP;
+    } 
+    
+    break;
+
+  case 1: // object place joint pose
+    joint_angle.push_back( 1.30);//0.0
+    joint_angle.push_back( -0.44); //-0.44
+    joint_angle.push_back( 0.26);//0.26
+    joint_angle.push_back( 0.1);//0.2
+    setJointSpacePath(joint_name_, joint_angle, 1.0);
+    place_count_++;
+  
+    break;
+
+  case 2: // place kinematic pose
+    for (int i = 0; i < ar_marker_pose.size(); i ++)
+    {
+      if (ar_marker_pose.at(i).id == 1)
+      {
+        kinematics_position.push_back(0.099);//0.308
+        kinematics_position.push_back(0.28);//-0.00045
+        kinematics_position.push_back(-0.001); //0.0765
+        kinematics_orientation.push_back(0.009);//4,938
+        kinematics_orientation.push_back(-0.0142);//0.0644
+        kinematics_orientation.push_back(0.54);//-0.00076
+        kinematics_orientation.push_back(0.8418);//1.0
+        setTaskSpacePath(kinematics_position, kinematics_orientation, 2.0);
+        place_count_ ++;
+        return;
+      }
+    }
+    break;
+
+  case 3: // objec place
+    setJointSpacePath(joint_name_, present_joint_angle_, 1.0);
+    gripper_value.push_back(0.01);
+    setToolControl(gripper_value);
+    place_count_ ++;
+  
+    break;
+  
+  case 4: // pre home pose 
+    joint_angle.push_back( 1.30);//0.0
+    joint_angle.push_back( -0.44); //-0.44
+    joint_angle.push_back( 0.26);//0.26
+    joint_angle.push_back( 0.1);//0.2
+    setJointSpacePath(joint_name_, joint_angle, 1.0);
+
+    place_count_++;  
+    break;
+
+  case 5:
+    place_count_ = 0;
+    break;
+  }
 }
 
-void OpenManipulatorPickandPlace::start_navigation0_pub()
+void OpenManipulatorPickandPlace::finish_pick_pub_func()
 {
-  arrived_msg.start_navigation = 0;  //starting return navigation
-  start_navigation_pub.publish(arrived_msg);
+  arrived_msg.finish_pick = 1; //starting return navigation  
+  finish_pick_pub.publish(arrived_msg);
 }
-
 
 void OpenManipulatorPickandPlace::printText()
 {
@@ -334,6 +430,8 @@ void OpenManipulatorPickandPlace::printText()
 
   printf("mode_state : %d \n", mode_state_);
   printf("demo_count : %d \n", demo_count_);
+  printf("place_count : %d \n", place_count_);
+
 /*
   printf("\n");
   printf("-----------------------------\n");
@@ -378,7 +476,7 @@ void OpenManipulatorPickandPlace::printText()
   {
     printf("The end of demo\n");
   }*/
-/*
+
   printf("-----------------------------\n");
   printf("Present Joint Angle J1: %.3lf J2: %.3lf J3: %.3lf J4: %.3lf\n",
          present_joint_angle_.at(0),
@@ -391,7 +489,7 @@ void OpenManipulatorPickandPlace::printText()
          present_kinematic_position_.at(1),
          present_kinematic_position_.at(2));
   printf("-----------------------------\n");
-*/
+
 /*
   if (ar_marker_pose.size()) printf("AR marker detected.\n");
   for (int i = 0; i < ar_marker_pose.size(); i ++)
@@ -425,7 +523,8 @@ int main(int argc, char **argv)
   // Init ROS node
   ros::init(argc, argv, "open_manipulator_pick_and_place");
   ros::NodeHandle node_handle("");
-  arrived_sub = node_handle.subscribe("/arrived", 1, arrivedCallback);
+  start_pick_sub = node_handle.subscribe("/start_pick", 1, arrivedCallback);
+  start_place_sub = node_handle.subscribe("/start_place", 1, start_place_Callback);
 
   OpenManipulatorPickandPlace open_manipulator_pick_and_place;
 
@@ -433,7 +532,6 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
-    
     
     ros::spinOnce();
   }

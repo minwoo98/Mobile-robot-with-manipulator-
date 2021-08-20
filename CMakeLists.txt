@@ -58,6 +58,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
    FILES
    main_control.msg
+   Point.msg
 )
 ## Generate services in the 'srv' folder
 ## Generate actions in the 'action' folder

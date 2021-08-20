@@ -20,6 +20,9 @@ int status;
 int is_arrived;
 int count = 0;
 int nav;
+int going_back;
+
+//extern int place_flag;
 
 class Navigation
 {
@@ -35,26 +38,23 @@ public:
     //start_navigation_sub = node_handle_.subscribe("/start_navigation", 1, start_Callback);
     start_navigation_sub = node_handle_.subscribe("/start_navigation", 10, &Navigation::start_Callback, this);
 
+    //place_start_pub = node_handle_.advertise<etri_nav::main_control>("start_pla", 1);
+    start_pick_pub = node_handle_.advertise<etri_nav::main_control>("start_pick", 1);
+
+    go_back_sub = node_handle_.subscribe("go_back", 1, &Navigation::go_back_Callback, this);
+
 
     //initialization
     is_pose_initialized = fnSetInitialPose();
     is_sending_goal_ready = set_first_goal();
     //is_sending_goal_ready2 = set_second_goal();
- 
+  /*
     for(int i=0; i<30000; i++)  
     {
       ROS_INFO("waiting for start..%d \n", i);
     }
-    
-    /*8
-    if( (is_pose_initialized && is_sending_goal_ready) == 1)
-    { 
-      Sending_first_goal();
-      ROS_INFO("Start Navigation!! \n"); 
-      is_sending_goal_ready = 0; 
-    } 
-    */
-   
+   */
+  /*
     ros::Rate loop_rate(5);
     while (ros::ok())
     {
@@ -62,6 +62,7 @@ public:
       ros::spinOnce(); //process callback que
       loop_rate.sleep();
     }
+    */
   }
   bool fnSetInitialPose()
   {
@@ -146,20 +147,12 @@ public:
   void start_Callback(const etri_nav::main_control &msg)
   {
     int nav = msg.start_navigation;
-    
     if(nav == 1)  Sending_first_goal();
-    else if(nav == 2)
-    {
-      for(int i=0; i<15000; i++)
-      {
-        ROS_INFO("wait for return..%d \n", i);
-      }
-      Sending_second_goal();
-    }
-    else if(nav ==0)
-    {
-      ROS_INFO("Going back.. \n");
-    }
+  }
+  void go_back_Callback(const etri_nav::main_control &msg)
+  {
+    int going_back = msg.go_back;
+    if(going_back == 1)  Sending_second_goal();
   }
 
 private:
@@ -204,8 +197,6 @@ int main(int argc, char **argv)
   //Create an object of class PoseInitialization that will take care of everything
   Navigation navigation;
   
-  
-
   ros::spin();
 
   return 0;

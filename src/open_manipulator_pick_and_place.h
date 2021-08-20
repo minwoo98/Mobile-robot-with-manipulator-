@@ -37,16 +37,24 @@
 #define DEMO_START  2
 #define DEMO_STOP   3
 #define TEACHING    4
+#define DEMO_PLACE_START 7
 
-//main control 
+ros::Publisher start_pick_pub;
+//ros::Publisher start_navigation_pub;
+ros::Publisher go_back_pub;
+ros::Publisher finish_pick_pub;
+ros::Publisher start_place_pub;
 
-ros::Publisher arrived_pub;
-ros::Publisher start_navigation_pub;
 ros::Subscriber start_navigation_sub;
-ros::Subscriber arrived_sub;
+ros::Subscriber start_pick_sub;
 ros::Subscriber move_base_state_sub;
+ros::Subscriber go_back_sub;
+ros::Subscriber finish_pick_sub;
+ros::Subscriber start_place_sub;
+
 etri_nav::main_control arrived_msg;
-bool start_manipulator;
+int start_manipulator;
+int start_manipulator_place;
 
 typedef struct _ArMarker
 {
@@ -78,6 +86,7 @@ class OpenManipulatorPickandPlace
 
   uint8_t mode_state_;
   uint8_t demo_count_;
+  uint8_t place_count_;
   uint8_t pick_ar_id_;
   uint8_t teach_count_;
   uint8_t object_picked;
@@ -101,12 +110,13 @@ class OpenManipulatorPickandPlace
   void publishCallback(const ros::TimerEvent&);
   void setModeState(char ch);
   void demoSequence();
+  void Place_Sequence();
 
   void printText();
   bool kbhit();
   void Teaching();
-  void start_navigation2_pub();
-  void start_navigation0_pub();
+  void finish_pick_pub_func();
+  
   void pub_pose();
 };
 

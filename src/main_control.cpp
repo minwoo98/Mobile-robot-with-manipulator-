@@ -10,39 +10,97 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "open_manipulator_pick_and_place.h"
 #include "etri_nav/main_control.h"
-/*
-void OpenManipulatorPickandPlace::setModeState(char ch)
-{
-  if (ch == '1')
-    mode_state_ = HOME_POSE;
-  else if (ch == '2')
-  {
-    mode_state_ = DEMO_START;
-    demo_count_ = 0;
-  }
-  else if (ch == '3')
-    mode_state_ = DEMO_STOP;
-}
 
-OpenManipulatorPickandPlace* a;
-*/
+int Global_count = 0;
+int finish_picking = 0;
+
+void print_feedback()
+{
+  //ROS_INFO("Global_count : %d \n", Global_count);
+
+
+}
 
 void statusCallback(const actionlib_msgs::GoalStatusArray &msg)
 {
   int status = 0;
-  
+
   //ROS_INFO("Status: %d \n", status);
-  if(!msg.status_list.empty()) status = msg.status_list[0].status;;
-
-  if(status == 3) 
+  if(!msg.status_list.empty())
   {
-    arrived_msg.arrived = 1;
-    arrived_pub.publish(arrived_msg); // manipulator start
-    ROS_INFO("robot arrived. \n");
+    status = msg.status_list[0].status;
+  } 
 
+  if(status == 3 && Global_count== 0) 
+  {
+    Global_count = 1;
+    ROS_INFO("robot arrived. \n");
     return;
   }
+
+  if(status == 3 && Global_count == 3)
+  {
+    
+    ROS_INFO("Placing start. \n");
+    Global_count = 4;
+    return;
+  }
+  else;
+  
 }
+void finish_pick_Callback(const etri_nav::main_control &msg)
+{
+  //Global_count++;
+  finish_picking = msg.finish_pick;
+  if(finish_picking== 1)
+  {
+    Global_count = 2;
+  }  
+  
+}
+
+void Main_Callback(const ros::TimerEvent&)
+{
+  print_feedback();
+
+  switch (Global_count)
+  {
+  case 0:
+    break;
+
+  case 1:
+    arrived_msg.start_pick = 1;
+    start_pick_pub.publish(arrived_msg);
+    ROS_INFO("arrived-> pick start \n");
+    break;
+
+  case 2:
+    arrived_msg.go_back = 1;
+    go_back_pub.publish(arrived_msg);
+    for(int i=0; i<40000; i++)  
+    {
+      ROS_INFO("go back! %d \n", i);
+    }
+    Global_count = 3;
+    break;
+  case 3:
+
+    break;
+  case 4:
+
+    arrived_msg.start_place = 1;
+    start_place_pub.publish(arrived_msg);
+    ROS_INFO("placing.. \n");
+    Global_count++;
+    break;
+
+  case 5:
+    break;
+
+  }
+  
+}
+
 
 int main(int argc, char **argv)
 {
@@ -50,17 +108,19 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "main_control");
   ros::NodeHandle nh;
 
-  arrived_pub = nh.advertise<etri_nav::main_control>("arrived", 1);
-  move_base_state_sub = nh.subscribe("move_base/status", 1, statusCallback);
+  start_pick_pub = nh.advertise<etri_nav::main_control>("start_pick", 1);
+  go_back_pub = nh.advertise<etri_nav::main_control>("go_back", 1);
+  start_place_pub = nh.advertise<etri_nav::main_control>("start_place", 1);
 
-  ros::Rate r(10.0);
+  move_base_state_sub = nh.subscribe("move_base/status", 1, statusCallback);
+  finish_pick_sub = nh.subscribe("/finish_pick", 10, finish_pick_Callback);
+
+  ros::Timer publish_timer = nh.createTimer(ros::Duration(0.200)/*100ms*/, &Main_Callback);
+
   while(nh.ok())
   {
-    
     ros::spinOnce();
-    r.sleep();
   }
-
 
   ros::spin();
 
