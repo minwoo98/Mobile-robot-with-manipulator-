@@ -37,7 +37,7 @@ void statusCallback(const actionlib_msgs::GoalStatusArray &msg)
     ROS_INFO("robot arrived. \n");
     return;
   }
-
+/*
   if(status == 3 && Global_count == 3)
   {
     
@@ -45,6 +45,7 @@ void statusCallback(const actionlib_msgs::GoalStatusArray &msg)
     Global_count = 4;
     return;
   }
+  */
   else;
   
 }
@@ -56,7 +57,6 @@ void finish_pick_Callback(const etri_nav::main_control &msg)
   {
     Global_count = 2;
   }  
-  
 }
 
 void Main_Callback(const ros::TimerEvent&)
@@ -76,26 +76,29 @@ void Main_Callback(const ros::TimerEvent&)
 
   case 2:
     arrived_msg.go_back = 1;
-    go_back_pub.publish(arrived_msg);
-    for(int i=0; i<40000; i++)  
+    for(int i=0; i<6000; i++)  
     {
-      ROS_INFO("go back! %d \n", i);
+      ROS_INFO("wait \n");
     }
+    go_back_pub.publish(arrived_msg);
     Global_count = 3;
     break;
   case 3:
-
-    break;
-  case 4:
-
+    /*for(int i=0; i<40000; i++)  
+    {
+      ROS_INFO("go back! %d \n", i);
+    }
     arrived_msg.start_place = 1;
     start_place_pub.publish(arrived_msg);
     ROS_INFO("placing.. \n");
     Global_count++;
+    */
     break;
 
-  case 5:
+  case 4:
+ 
     break;
+
 
   }
   

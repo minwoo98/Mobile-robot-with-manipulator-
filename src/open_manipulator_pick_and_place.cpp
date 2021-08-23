@@ -220,7 +220,7 @@ void OpenManipulatorPickandPlace::publishCallback(const ros::TimerEvent&)
   }
   else if (mode_state_ == DEMO_START)
   {
-    if (!open_manipulator_is_moving_) demoSequence();
+    if ((!open_manipulator_is_moving_) && (mode_state_ != DEMO_PLACE_START)) demoSequence();
   }
   else if (mode_state_ == DEMO_STOP)
   {
@@ -276,10 +276,11 @@ void OpenManipulatorPickandPlace::demoSequence()
     else if(count1 == 1)
     {
       mode_state_ = DEMO_STOP;
-      start_manipulator = 1;
       finish_pick_pub_func();
+      count1++;
       
     } 
+    else;
     break;
 
   case 1: // object grasp joint pose
@@ -306,7 +307,7 @@ void OpenManipulatorPickandPlace::demoSequence()
         //setJointSpacePath(joint_name_, present_joint_angle_, 3.0);
         //kinematics_position.push_back(ar_marker_pose.at(i).position[0]);
         //kinematics_position.push_back(ar_marker_pose.at(i).position[1]);
-        kinematics_position.push_back(0.308);//0.308
+        kinematics_position.push_back(0.318);//0.308
         kinematics_position.push_back(-0.00045);//-0.00045
         kinematics_position.push_back(0.0765); //0.0765
         kinematics_orientation.push_back(4.938);//4,938
@@ -367,9 +368,9 @@ void OpenManipulatorPickandPlace::Place_Sequence()
 
   case 1: // object place joint pose
     joint_angle.push_back( 1.30);//0.0
-    joint_angle.push_back( -0.44); //-0.44
-    joint_angle.push_back( 0.26);//0.26
-    joint_angle.push_back( 0.1);//0.2
+    joint_angle.push_back( -0.05); //-0.44
+    joint_angle.push_back( 0.24);//0.26
+    joint_angle.push_back( -0.15);//0.2
     setJointSpacePath(joint_name_, joint_angle, 1.0);
     place_count_++;
   
@@ -380,13 +381,13 @@ void OpenManipulatorPickandPlace::Place_Sequence()
     {
       if (ar_marker_pose.at(i).id == 1)
       {
-        kinematics_position.push_back(0.099);//0.308
-        kinematics_position.push_back(0.28);//-0.00045
-        kinematics_position.push_back(-0.001); //0.0765
-        kinematics_orientation.push_back(0.009);//4,938
-        kinematics_orientation.push_back(-0.0142);//0.0644
-        kinematics_orientation.push_back(0.54);//-0.00076
-        kinematics_orientation.push_back(0.8418);//1.0
+        kinematics_position.push_back(0.0828);//0.308
+        kinematics_position.push_back(0.29216);//-0.00045
+        kinematics_position.push_back(0.0638); //0.0765
+        kinematics_orientation.push_back(-0.0294);//4,938
+        kinematics_orientation.push_back(0.03736);//0.0644
+        kinematics_orientation.push_back(0.61755);//-0.00076
+        kinematics_orientation.push_back(0.785092);//1.0
         setTaskSpacePath(kinematics_position, kinematics_orientation, 2.0);
         place_count_ ++;
         return;
