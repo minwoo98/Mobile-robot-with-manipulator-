@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="object_detection" type="object_detection" name="object_detection"/>
+</launch>
