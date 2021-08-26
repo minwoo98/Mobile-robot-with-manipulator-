@@ -1,0 +1,16 @@
+obstacle_range: 3.0
+raytrace_range: 3.5
+
+footprint: [[-0.205, -0.155], [-0.205, 0.155], [0.077, 0.155], [0.077, -0.155]]
+#robot_radius: 0.17
+
+inflation_radius: 0.4 #0.55 # 1.0 higher more curved path          0.5에 70잘갔음 -save
+cost_scaling_factor: 10.0 #20.0 #3.0 #more smaller to far from obstacles
+#1,75 2.58 very good 9.5point
+
+#cost=> 70 너무 장애물에 붙어서 가려고함., 30도 좀 더 낫지만 비슷. 
+#10  good
+
+map_type: costmap
+observation_sources: scan
+scan: {sensor_frame: base_scan, data_type: LaserScan, topic: scan, marking: true, clearing: true}
