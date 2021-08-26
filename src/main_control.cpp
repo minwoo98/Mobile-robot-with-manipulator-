@@ -3,7 +3,6 @@
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
 #include "std_msgs/String.h"
-//#include "etri_nav/ServiceStatus.h"
 #include "std_msgs/String.h"
 #include "actionlib_msgs/GoalStatusArray.h"
 #include "move_base_msgs/MoveBaseActionResult.h"
@@ -13,13 +12,6 @@
 
 int Global_count = 0;
 int finish_picking = 0;
-
-void print_feedback()
-{
-  //ROS_INFO("Global_count : %d \n", Global_count);
-
-
-}
 
 void statusCallback(const actionlib_msgs::GoalStatusArray &msg)
 {
@@ -37,7 +29,7 @@ void statusCallback(const actionlib_msgs::GoalStatusArray &msg)
     ROS_INFO("robot arrived. \n");
     return;
   }
-/*
+
   if(status == 3 && Global_count == 3)
   {
     
@@ -45,7 +37,6 @@ void statusCallback(const actionlib_msgs::GoalStatusArray &msg)
     Global_count = 4;
     return;
   }
-  */
   else;
   
 }
@@ -61,8 +52,6 @@ void finish_pick_Callback(const etri_nav::main_control &msg)
 
 void Main_Callback(const ros::TimerEvent&)
 {
-  print_feedback();
-
   switch (Global_count)
   {
   case 0:
@@ -84,22 +73,14 @@ void Main_Callback(const ros::TimerEvent&)
     Global_count = 3;
     break;
   case 3:
-    /*for(int i=0; i<40000; i++)  
-    {
-      ROS_INFO("go back! %d \n", i);
-    }
+    break;
+
+  case 4:  
     arrived_msg.start_place = 1;
     start_place_pub.publish(arrived_msg);
     ROS_INFO("placing.. \n");
-    Global_count++;
-    */
-    break;
-
-  case 4:
  
     break;
-
-
   }
   
 }

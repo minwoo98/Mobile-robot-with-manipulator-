@@ -5,15 +5,12 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/Twist.h"
 #include "tf2_msgs/TFMessage.h"
-//#include "etri_nav.h"
 #include <string.h>
 #include <sstream>
 #include <std_msgs/Bool.h>
 #include "std_msgs/String.h"
-//#include "etri_nav/ServiceStatus.h"
 #include "actionlib_msgs/GoalStatusArray.h"
 #include "move_base_msgs/MoveBaseActionResult.h"
-
 #include "open_manipulator_pick_and_place.h"
 
 int status;
@@ -22,7 +19,6 @@ int count = 0;
 int nav;
 int going_back;
 
-//extern int place_flag;
 
 class Navigation
 {
@@ -47,22 +43,7 @@ public:
     //initialization
     is_pose_initialized = fnSetInitialPose();
     is_sending_goal_ready = set_first_goal();
-    //is_sending_goal_ready2 = set_second_goal();
-  /*
-    for(int i=0; i<30000; i++)  
-    {
-      ROS_INFO("waiting for start..%d \n", i);
-    }
-   */
-  /*
-    ros::Rate loop_rate(5);
-    while (ros::ok())
-    {
-      //pub_pose();
-      ros::spinOnce(); //process callback que
-      loop_rate.sleep();
-    }
-    */
+ 
   }
   bool fnSetInitialPose()
   {
